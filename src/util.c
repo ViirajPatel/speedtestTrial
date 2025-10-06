@@ -4,7 +4,10 @@
 
 void iso8601_time(char *buf, int buflen, long epoch){
     time_t t = (time_t)epoch;
-    struct tm tm;
-    gmtime_r(&t, &tm);
-    strftime(buf, buflen, "%Y-%m-%dT%H:%M:%SZ", &tm);
+    struct tm *ptm = gmtime(&t);
+    if (!ptm) {
+        if (buf && buflen > 0) buf[0] = '\0';
+        return;
+    }
+    strftime(buf, buflen, "%Y-%m-%dT%H:%M:%SZ", ptm);
 }

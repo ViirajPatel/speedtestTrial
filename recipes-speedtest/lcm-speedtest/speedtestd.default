@@ -1,0 +1,6 @@
+# Default configuration for speedtestd
+# Override via USP/LCM or container env vars as needed
+SPEEDTEST_PORT=8080
+SPEEDTEST_SERVER=iperf3.example.net:5201
+SPEEDTEST_DURATION=10
+SPEEDTEST_RUN_ON_START=0

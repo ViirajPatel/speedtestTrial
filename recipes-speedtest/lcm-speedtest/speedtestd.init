@@ -1,0 +1,58 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          speedtestd
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Speedtest daemon
+### END INIT INFO
+
+DAEMON=/usr/bin/speedtestd
+NAME=speedtestd
+DESC="Speedtest Daemon"
+DEFAULT_CONF=/etc/default/speedtestd
+PIDFILE=/var/run/$NAME.pid
+
+[ -x $DAEMON ] || exit 0
+[ -r $DEFAULT_CONF ] && . $DEFAULT_CONF
+
+PORT=${SPEEDTEST_PORT:-8080}
+SERVER=${SPEEDTEST_SERVER:-iperf3.example.net:5201}
+DURATION=${SPEEDTEST_DURATION:-10}
+RUN_ON_START=${SPEEDTEST_RUN_ON_START:-0}
+
+export SPEEDTEST_PORT="$PORT"
+export SPEEDTEST_SERVER="$SERVER"
+export SPEEDTEST_DURATION="$DURATION"
+export SPEEDTEST_RUN_ON_START="$RUN_ON_START"
+
+start() {
+    echo "Starting $DESC on port $PORT"
+    start-stop-daemon --start --quiet --background --make-pidfile --pidfile $PIDFILE \
+        --exec $DAEMON -- $PORT || echo "Failed to start"
+}
+
+stop() {
+    echo "Stopping $DESC"
+    start-stop-daemon --stop --quiet --pidfile $PIDFILE --retry=TERM/5/KILL/2 || echo "Failed to stop"
+    rm -f $PIDFILE
+}
+
+status() {
+    if [ -f $PIDFILE ] && kill -0 $(cat $PIDFILE) 2>/dev/null; then
+        echo "$DESC is running (pid $(cat $PIDFILE))"
+        return 0
+    fi
+    echo "$DESC is not running"
+    return 1
+}
+
+case "$1" in
+  start) start ;;
+  stop) stop ;;
+  restart) stop; start ;;
+  status) status ;;
+  *) echo "Usage: $0 {start|stop|restart|status}"; exit 1 ;;
+ esac
+exit 0
